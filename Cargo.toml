@@ -1,0 +1,11 @@
+[package]
+name = "mv-git"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[dev-dependencies]
+tempfile = "3.10.1"
