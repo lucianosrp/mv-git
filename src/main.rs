@@ -2,7 +2,7 @@ use std::env;
 use std::error::Error;
 use std::fs::File;
 use std::fs::{self, DirEntry};
-use std::io::{self, BufRead};
+use std::io::{self, BufRead, ErrorKind};
 use std::path::Path;
 
 fn read_gitignore(file: &Path) -> io::Result<Vec<String>> {
@@ -49,15 +49,24 @@ fn copy_dir_recursive(src: &Path, dst: &Path, gitignore: &Option<Vec<String>>) -
 fn move_dir(src: &Path, dst: &Path, gitignore: &Option<Vec<String>>, copy: bool) -> io::Result<()> {
     if !src.exists() {
         return Err(io::Error::new(
-            io::ErrorKind::NotFound,
+            ErrorKind::NotFound,
             "Source directory not found",
         ));
     }
 
-    copy_dir_recursive(src, dst, gitignore)?;
-    if !copy {
-        fs::remove_dir_all(src)?;
+    // Handle potential errors during the copy process
+    if let Err(e) = copy_dir_recursive(src, dst, gitignore) {
+        eprintln!("Error copying directory: {}", e);
+        return Err(e); // Propagate the error
     }
+
+    if !copy {
+        if let Err(e) = fs::remove_dir_all(src) {
+            eprintln!("Error removing source directory: {}", e);
+            return Err(e); // Propagate the error
+        }
+    }
+
     Ok(())
 }
 
